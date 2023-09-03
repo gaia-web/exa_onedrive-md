@@ -4,30 +4,26 @@ import { marked } from "marked";
 
 const appContainer = document.querySelector<HTMLDivElement>("#app");
 
+// use the sharing link to create a drive adapter
 const sharingLink = `https://1drv.ms/f/s!Akwk_rooMFtbgRZsFanDS-fleX-m?e=1jz0gf`;
 const driveAdapter = new OneDriveAdapter(sharingLink);
 
-const fileList: OneDriveFile[] = [];
+// consider them as states
+let mdList: OneDriveFile[];
 let markdown: string;
 
-async function init() {
-  const files = await driveAdapter.children;
-  if (!files) return;
-  for await (let file of files) {
-    if (file.name?.endsWith(".md")) fileList.push(file as OneDriveFile);
-  }
-  await update();
-}
-
+// this is the HTML template to be rendered
 const htmlTemplate = () => html`
-  <h1>List</h1>
+  <h1>List (clickable)</h1>
   <ul>
-    ${fileList.map(
+    ${mdList.map(
       (file) => html`
         <li
           style="cursor: pointer"
           @click=${async () => {
+            // obtain file content as text and assign it to markdown state
             markdown = (await file.contentAsText) ?? "";
+            // calling update() to rerender
             update();
           }}
         >
@@ -44,8 +40,25 @@ const htmlTemplate = () => html`
   ></div>
 `;
 
+// calling this function to update UI (rerender the HTML template)
 function update() {
   render(htmlTemplate(), appContainer ?? document.body);
 }
 
+// initialization function
+async function init() {
+  // refresh mdList
+  mdList = [];
+  // get children of the root directory
+  const children = await driveAdapter.children;
+  if (!children) return;
+  for await (let child of children) {
+    // if the child item has name ending with ".md", then push it into mdList
+    if (child.name?.endsWith(".md")) mdList.push(child as OneDriveFile);
+  }
+  // call update() to rerender
+  await update();
+}
+
+// start logic
 init();
