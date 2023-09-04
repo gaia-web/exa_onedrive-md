@@ -1,6 +1,6 @@
 import { html, render } from "lit-html";
 import { OneDriveAdapter, OneDriveFile } from "drive-adapters";
-import { marked } from "marked";
+import '@awesome-elements/markdown'
 
 const appContainer = document.querySelector<HTMLDivElement>("#app");
 
@@ -17,27 +17,30 @@ const htmlTemplate = () => html`
   <h1>List (clickable)</h1>
   <ul>
     ${mdList.map(
-      (file) => html`
+  (file) => html`
         <li
           style="cursor: pointer"
           @click=${async () => {
-            // obtain file content as text and assign it to markdown state
-            markdown = (await file.contentAsText) ?? "";
-            // calling update() to rerender
-            update();
-          }}
+      // obtain file content as text and assign it to markdown state
+      markdown = (await file.contentAsText) ?? "";
+      // calling update() to rerender
+      update();
+    }}
         >
           <b>${file.name}</b> - ${file.createdTime}
         </li>
       `
-    )}
+)}
   </ul>
   <hr />
   <h1>Content</h1>
-  <div
-    .innerHTML=${marked(markdown ?? "")}
-    style="font-family: arial; border: 1px solid black; padding: 2rem;"
-  ></div>
+  <awesome-markdown .markdown=${markdown}>
+    <style>
+      ::part(container) {
+        font-family: arial; border: 1px solid black; padding: 2rem;
+      }
+    </style>
+  </awesome-markdown>
 `;
 
 // calling this function to update UI (rerender the HTML template)
